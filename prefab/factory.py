@@ -44,8 +44,8 @@ def TenderLocomotiveFactory(
 class CargoHelper:
     """Helper class representing cargo information.
 
-    Use the unmodified instance directly to represent the maximum amount of cargo
-    the car can hold, or use __mul__ to specify the quantity.
+    Use the unmodified instance directly to represent the maximum amount of
+    cargo the car can hold, or use __mul__ to specify the quantity.
     """
     def __init__(self, name, each_mass, count = None):
         self._name = name

@@ -71,14 +71,17 @@ class Car(RollingStock):
         return 0
 
 class TractiveCar(Car):
-    """Base class for individual pieces of rolling stock that apply tractive effort."""
+    """Base class for individual pieces of rolling stock that apply tractive
+    effort.
+    """
 
     def __init__(self, name, mass, tractive_effort):
         """Create a piece of rolling stock that applies a tractive effort.
 
         name -- The name to assign to the entity.
         mass -- The mass of the entity, in pounds.
-        tractive_effort -- The amount of tractive effort provided, in pounds of force.
+        tractive_effort -- The amount of tractive effort provided, in pounds
+        of force.
         """
         super().__init__(name=name, mass=mass)
         self._tractive_effort = tractive_effort
@@ -91,7 +94,8 @@ class TractiveCar(Car):
 class Train(collections.abc.Sequence):
     """Container holding rolling stock in a specified order.
 
-    This class is also the backbone of most computations related to rolling stock.
+    This class is also the backbone of most computations related to rolling
+    stock.
     """
 
     def __init__(self, rolling_stock):
@@ -136,7 +140,8 @@ class Train(collections.abc.Sequence):
     def __mul__(self, n):
         """Duplicate the cars in this train a number of times.
 
-        Note this works the same as multiplying e.g. a list or tuple; cars will not be grouped together.
+        Note this works the same as multiplying e.g. a list or tuple; cars will
+        not be grouped together.
         """
         return Train(self._elems * n)
 
@@ -153,7 +158,8 @@ class Train(collections.abc.Sequence):
     def flat_iter(self):
         """Iterate over all Car instances in the train.
 
-        Note this differs from iter(Train) in that CarGroup instances are decomposed here.
+        Note this differs from iter(Train) in that CarGroup instances are
+        decomposed here.
         """
         for x in self:
             if isinstance(x, CarGroup):
@@ -179,36 +185,44 @@ class Train(collections.abc.Sequence):
     # F = total force (pounds of force)
     
     def starting_force(self, grade):
-        """The amount of force needed to start the train on the given grade, in pounds of force."""
+        """The amount of force needed to start the train on the given grade, in
+        pounds of force."""
         return self.mass * (grade + 0.004) / math.sqrt(grade * grade + 1)
 
     def starting_power(self, grade):
-        """The percentage of the total tractive effort needed to start the train on the given grade."""
+        """The percentage of the total tractive effort needed to start the train
+        on the given grade."""
         return self.starting_force(grade) / self.tractive_effort
 
     def spare_capacity(self, grade):
         """The amount of spare mass capacity in the given grade, in pounds."""
-        return self.tractive_effort * math.sqrt(grade * grade + 1) / (grade + 0.004) - self.mass
+        return (self.tractive_effort * math.sqrt(grade * grade + 1)
+                / (grade + 0.004) - self.mass)
 
     def maximum_grade(self):
         """The maximum grade the train can start on."""
         F = self.tractive_effort
         M = self.mass
-        return (M**2 * 0.004 - F * math.sqrt(M**2 * (0.004**2 + 1) - F**2)) / (F**2 - M**2)
+        return ((M**2 * 0.004 - F * math.sqrt(M**2 * (0.004**2 + 1) - F**2))
+                / (F**2 - M**2))
 
 class CarGroup(RollingStock):
-    """Class treating a Train of rolling stock as an indivisible entity for another Train.
+    """Class treating a Train of rolling stock as an indivisible entity for
+    another Train.
 
-    This class is important when dealing with things such as tendered locomotives, where in some ways you
-    want to treat the locomotive as separate from the tender (e.g. train car length) but in others you want
+    This class is important when dealing with things such as tendered
+    locomotives, where in some ways you want to treat the locomotive as
+    separate from the tender (e.g. train car length) but in others you want
     to treat them as a single car (e.g. computing splits for hillclimbing).
     """
 
     def __init__(self, name, train):
-        """Construct a CarGroup from a Train, iterable, or (generally not recommended) single piece of rolling stock.
+        """Construct a CarGroup from a Train, iterable, or (generally not
+        recommended) single piece of rolling stock.
 
         name -- The name to assign the composite entity.
-        train -- The train composing the entity. Note this argument is passed directly to Train.__init__().
+        train -- The train composing the entity. Note this argument is passed
+        directly to Train.__init__().
         """
         self._name = name
         self._train = Train(train)
