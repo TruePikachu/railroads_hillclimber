@@ -85,9 +85,19 @@ class RollingStock(Calculative, ABC):
         else:
             return NotImplemented
 
+    def __radd__(self, other):
+        """Attach this piece of rolling stock to others, forming a Train."""
+        if isinstance(other, RollingStock):
+            return Train((other, self))
+        elif isinstance(other, Train):
+            return Train(tuple(other) + (self,))
+        else:
+            return NotImplemented
+
     def __mul__(self, n):
         """Make a Train composed of multiples of this piece of rolling stock."""
         return Train((self,) * n)
+    __rmul__ = __mul__
 
 class Car(RollingStock):
     """Base class for individual pieces of rolling stock."""
@@ -183,6 +193,18 @@ class Train(collections.abc.Sequence, Calculative):
         else:
             return NotImplemented
 
+    def __radd__(self, other):
+        """Attach this train to other rolling stock, making a longer train.
+
+        other can be either a Train or RollingStock.
+        """
+        if isinstance(other, RollingStock):
+            return Train((other,) + self._elems)
+        elif isinstance(other, Train):
+            return Train(tuple(other) + self._elems)
+        else:
+            return NotImplemented
+
     def __mul__(self, n):
         """Duplicate the cars in this train a number of times.
 
@@ -190,6 +212,7 @@ class Train(collections.abc.Sequence, Calculative):
         not be grouped together.
         """
         return Train(self._elems * n)
+    __rmul__ = __mul__
 
     @property
     def mass(self):

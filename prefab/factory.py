@@ -72,6 +72,7 @@ class CargoHelper:
             return CargoHelper(self._name, self._each_mass, n)
         else:
             return CargoHelper(self._name, self._each_mass, n * self._count)
+    __rmul__ = __mul__
 
     def compute(self, max_quantity):
         if self._count is None:
