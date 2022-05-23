@@ -3,25 +3,71 @@ import collections.abc
 import math
 import operator
 
-class RollingStock(ABC):
+class Calculative(ABC):
+    """Abstract base class that provides grade-related calculations.
+
+    The equations are based on:
+
+         M⋅(α + μ)
+    F = ───────────
+           ________
+          ╱  2
+        ╲╱  α  + 1
+
+    α = grade (as slope)
+    μ = coefficient of friction (0.004)
+    M = total mass (pounds)
+    F = total force (pounds of force)
+    """
+
+    @property
+    @abstractmethod
+    def mass(self):
+        """Total mass of the rolling stock, in pounds."""
+        pass
+
+    @property
+    @abstractmethod
+    def tractive_effort(self):
+        """Total tractive effort of the rolling stock, in pounds of force."""
+        pass
+
+    def starting_force(self, grade):
+        """The amount of force needed to move the rolling stock upwards on the
+        given grade, in pounds of force."""
+        return self.mass * (grade + 0.004) / math.sqrt(grade * grade + 1)
+
+    def starting_power(self, grade):
+        """The percentage of the total tractive effort needed to move the
+        rolling stock upwards on the given grade."""
+        if self.tractive_effort > 0:
+            return self.starting_force(grade) / self.tractive_effort
+        else:
+            return math.nan
+
+    def spare_capacity(self, grade):
+        """The amount of spare mass capacity on the given grade, in pounds."""
+        return (self.tractive_effort * math.sqrt(grade * grade + 1)
+                / (grade + 0.004) - self.mass)
+
+    def maximum_grade(self):
+        """The maximum grade this rolling stock can climb under its own power."""
+        F = self.tractive_effort
+        if F==0:
+            return math.nan
+        else:
+            M = self.mass
+            return ((M**2 * 0.004 - F * math.sqrt(
+                    M**2 * (0.004**2 + 1) - F**2))
+                / (F**2 - M**2))
+
+class RollingStock(Calculative, ABC):
     """Abstract base class for everything that's treated as rolling stock."""
 
     @property
     @abstractmethod
     def name(self):
         """Name assigned to the rolling stock."""
-        pass
-
-    @property
-    @abstractmethod
-    def mass(self):
-        """Mass of the rolling stock, in pounds."""
-        pass
-
-    @property
-    @abstractmethod
-    def tractive_effort(self):
-        """Tractive effort of the rolling stock, in pounds of force."""
         pass
 
     def __str__(self):
@@ -91,7 +137,7 @@ class TractiveCar(Car):
         """Tractive effort of the rolling stock, in pounds of force."""
         return self._tractive_effort
 
-class Train(collections.abc.Sequence):
+class Train(collections.abc.Sequence, Calculative):
     """Container holding rolling stock in a specified order.
 
     This class is also the backbone of most computations related to rolling
@@ -170,41 +216,6 @@ class Train(collections.abc.Sequence):
     def __repr__(self):
         return f'Train({repr(self._elems)})'
 
-
-    # The following equations are based on:
-    #
-    #      M⋅(α + μ)
-    # F = ───────────
-    #        ________
-    #       ╱  2
-    #     ╲╱  α  + 1
-    #
-    # α = grade (as slope)
-    # μ = coefficient of friction (0.004)
-    # M = total mass (pounds)
-    # F = total force (pounds of force)
-    
-    def starting_force(self, grade):
-        """The amount of force needed to start the train on the given grade, in
-        pounds of force."""
-        return self.mass * (grade + 0.004) / math.sqrt(grade * grade + 1)
-
-    def starting_power(self, grade):
-        """The percentage of the total tractive effort needed to start the train
-        on the given grade."""
-        return self.starting_force(grade) / self.tractive_effort
-
-    def spare_capacity(self, grade):
-        """The amount of spare mass capacity in the given grade, in pounds."""
-        return (self.tractive_effort * math.sqrt(grade * grade + 1)
-                / (grade + 0.004) - self.mass)
-
-    def maximum_grade(self):
-        """The maximum grade the train can start on."""
-        F = self.tractive_effort
-        M = self.mass
-        return ((M**2 * 0.004 - F * math.sqrt(M**2 * (0.004**2 + 1) - F**2))
-                / (F**2 - M**2))
 
 class CarGroup(RollingStock):
     """Class treating a Train of rolling stock as an indivisible entity for
