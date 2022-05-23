@@ -224,6 +224,20 @@ class Train(collections.abc.Sequence, Calculative):
         """Total tractive effort of the rolling stock, in pounds of force."""
         return sum(map(operator.attrgetter('tractive_effort'), self))
 
+    def tractive_units(self):
+        """Iterate over units in the train that provide tractive effort."""
+        for x in self:
+            if x.tractive_effort > 0:
+                yield x
+
+    def passive_units(self):
+        """Iterate over units in the train that don't provide tractive
+        effort.
+        """
+        for x in self:
+            if x.tractive_effort == 0:
+                yield x
+
     def flat_iter(self):
         """Iterate over all Car instances in the train.
 
