@@ -43,54 +43,73 @@ def fastsplit(
 
 def smartsplit(
         capacity: float,
-        cut: Sequence[float],
-        max_parts: int) -> Tuple[int]:
+        cut: Sequence[float]) -> Tuple[int]:
     """Run the Smartsplit algorithm.
 
     capacity -- Amount of head force capacity available.
     cut -- Forces for each unit in the cut.
-    max_parts -- Maximum number of ways to divide cut.
     """
     assert capacity > 0
-    if len(cut) == 0:
-        return ()
-    elif max_parts <= 0:
-        return None
-    elif max_parts == 1:
-        if capacity + sum(cut) > 0:
-            return (len(cut),)
-        else:
-            return None
-    else:
-        best_split = None
-        best_split_len = max_parts+1
-        this_len = len(cut)
-        while this_len > 0:
-            this_cut = cut[:this_len]
-            if capacity + sum(this_cut) > 0:
-                # subcut is valid
-                split = smartsplit(capacity, cut[this_len:], best_split_len-2)
-                if split is not None:
-                    # split is valid
-                    split = (this_len,) + split
-                    if len(split) < best_split_len:
-                        best_split_len = len(split)
-                        if best_split_len == 1:
-                            return split
-                        best_split = split
-                    # Check remove units from subcut to get rid of a force
-                    # provider
-                    for removed in reversed(this_cut):
-                        this_len -= 1
-                        if removed > 0:
-                            break
-                else:
-                    # split was not valid
-                    this_len -= 1
+    cache = [0] * len(cut)
+    # cache[N-1] holds, for the last N cars, either the optimal splits or a
+    # lower bound on the number of splits required. This allows for quickly
+    # resolving tail configurations when backtracking force providers.
+
+    def f(cut, max_parts):
+        if len(cut) == 0:
+            return ()
+        def r(result):
+            if result is not None:
+                cache[len(cut)-1] = result
             else:
-                # subcut was not valid
-                this_len -= 1
-        return best_split
+                cache[len(cut)-1] = max_parts
+            return result
+        cached = cache[len(cut)-1]
+        if isinstance(cached, tuple):
+            if len(cached) <= max_parts:
+                return cached
+            else:
+                return None
+        elif cached >= max_parts:
+            return None
+
+        if max_parts == 1:
+            if capacity + sum(cut) > 0:
+                return r((len(cut),))
+            else:
+                return r(None)
+        else:
+            best_split = None
+            best_split_len = max_parts+1
+            this_len = len(cut)
+            while this_len > 0:
+                this_cut = cut[:this_len]
+                if capacity + sum(this_cut) > 0:
+                    # subcut is valid
+                    split = f(cut[this_len:], best_split_len-2)
+                    if split is not None:
+                        # split is valid
+                        split = (this_len,) + split
+                        if len(split) < best_split_len:
+                            best_split_len = len(split)
+                            if best_split_len == 1:
+                                return r(split)
+                            best_split = split
+                        # Check remove units from subcut to get rid of a force
+                        # provider
+                        for removed in reversed(this_cut):
+                            this_len -= 1
+                            if removed > 0:
+                                break
+                    else:
+                        # split was not valid
+                        this_len -= 1
+                else:
+                    # subcut was not valid
+                    this_len -= 1
+            return r(best_split)
+
+    return f(cut, len(cut))
 
 def compute_split(
         power: Calculative,
@@ -121,7 +140,7 @@ def compute_split(
     if (max(c) <= 0) or (collect_net is not False):
         return fastsplit(p, c, collect_net=True)
     else:
-        return smartsplit(p, c, max_parts=len(cut))
+        return smartsplit(p, c)
 
 def split_to_slices(split: Iterable[int]) -> Iterator[slice]:
     """Convert a splitting sequence into an iterator of slices."""
