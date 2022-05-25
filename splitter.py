@@ -96,6 +96,7 @@ def compute_split(
         power: Calculative,
         cut: Train,
         grade: float,
+        *,
         max_power: float = 1.0,
         collect_net: bool = False) -> Tuple[int]:
     """
