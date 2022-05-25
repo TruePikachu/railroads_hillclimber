@@ -41,6 +41,57 @@ def fastsplit(
             return None
     return tuple(splits)
 
+def smartsplit(
+        capacity: float,
+        cut: Sequence[float],
+        max_parts: int) -> Tuple[int]:
+    """Run the Smartsplit algorithm.
+
+    capacity -- Amount of head force capacity available.
+    cut -- Forces for each unit in the cut.
+    max_parts -- Maximum number of ways to divide cut.
+    """
+    assert capacity > 0
+    if len(cut) == 0:
+        return ()
+    elif max_parts <= 0:
+        return None
+    elif max_parts == 1:
+        if capacity + sum(cut) > 0:
+            return (len(cut),)
+        else:
+            return None
+    else:
+        best_split = None
+        best_split_len = max_parts+1
+        this_len = len(cut)
+        while this_len > 0:
+            this_cut = cut[:this_len]
+            if capacity + sum(this_cut) > 0:
+                # subcut is valid
+                split = smartsplit(capacity, cut[this_len:], best_split_len-2)
+                if split is not None:
+                    # split is valid
+                    split = (this_len,) + split
+                    if len(split) < best_split_len:
+                        best_split_len = len(split)
+                        if best_split_len == 1:
+                            return split
+                        best_split = split
+                    # Check remove units from subcut to get rid of a force
+                    # provider
+                    for removed in reversed(this_cut):
+                        this_len -= 1
+                        if removed > 0:
+                            break
+                else:
+                    # split was not valid
+                    this_len -= 1
+            else:
+                # subcut was not valid
+                this_len -= 1
+        return best_split
+
 def compute_split(
         power: Calculative,
         cut: Train,
@@ -64,11 +115,12 @@ def compute_split(
             grade=grade,
             max_power=max_power,
         )
-    return fastsplit(
-            f(power),
-            tuple(map(f, cut)),
-            collect_net=collect_net,
-        )
+    p = f(power)
+    c = tuple(map(f, cut))
+    if (max(c) <= 0) or (collect_net is not False):
+        return fastsplit(p, c, collect_net=True)
+    else:
+        return smartsplit(p, c, max_parts=len(cut))
 
 def split_to_slices(split: Iterable[int]) -> Iterator[slice]:
     """Convert a splitting sequence into an iterator of slices."""
