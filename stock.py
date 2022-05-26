@@ -45,14 +45,14 @@ class Calculative(ABC):
         else:
             return math.nan
 
-    def spare_capacity(self, grade):
+    def spare_capacity(self, grade, power_ratio=1.0):
         """The amount of spare mass capacity on the given grade, in pounds."""
-        return (self.tractive_effort * math.sqrt(grade * grade + 1)
-                / (grade + 0.004) - self.mass)
+        return (self.tractive_effort * power_ratio
+                * math.sqrt(grade * grade + 1) / (grade + 0.004) - self.mass)
 
-    def maximum_grade(self):
+    def maximum_grade(self, power_ratio=1.0):
         """The maximum grade this rolling stock can climb under its own power."""
-        F = self.tractive_effort
+        F = self.tractive_effort * power_ratio
         if F==0:
             return math.nan
         else:
