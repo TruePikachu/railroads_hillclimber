@@ -61,6 +61,15 @@ class Calculative(ABC):
                     M**2 * (0.004**2 + 1) - F**2))
                 / (F**2 - M**2))
 
+    def net_force(self, grade, power_ratio=1.0):
+        """Compute the net force applied by this rolling stock on grade with
+        the provided power setting.
+
+        This is positive iff the rolling stock can climb the grade from a
+        standstill under its own power.
+        """
+        return self.tractive_effort * power_ratio - self.starting_force(grade)
+
 class RollingStock(Calculative, ABC):
     """Abstract base class for everything that's treated as rolling stock."""
 

@@ -4,18 +4,6 @@ import operator
 from railroads_hillclimber.stock import Calculative, Train
 from typing import Iterable, Iterator, Sequence, Tuple
 
-def net_force_capacity(
-        x: Calculative,
-        grade: float,
-        max_power: float = 1.0) -> float:
-    """Compute the net force capacity of x.
-
-    x -- Entity to measure.
-    grade -- Grade to measure x on.
-    max_power -- Maximum power ratio to apply.
-    """
-    return x.tractive_effort * max_power - x.starting_force(grade)
-
 def fastsplit(
         capacity: float,
         cut: Sequence[float],
@@ -130,13 +118,10 @@ def compute_split(
     that are capable of making the grade under their own power be added to
     the power for future subcuts?
     """
-    f = functools.partial(
-            net_force_capacity,
-            grade=grade,
-            max_power=max_power,
-        )
-    p = f(power)
-    c = tuple(map(f, cut))
+    p = power.net_force(grade=grade, power_ratio=max_power)
+    c = tuple(map(
+        operator.methodcaller('net_force', grade=grade, power_ratio=max_power),
+        cut))
     if (max(c) <= 0) or (collect_net is not False):
         return fastsplit(p, c, collect_net=True)
     else:
