@@ -104,7 +104,7 @@ def compute_split(
         cut: Train,
         grade: float,
         *,
-        max_power: float = 1.0,
+        power_ratio: float = 1.0,
         collect_net: bool = False) -> Tuple[int]:
     """
     Compute splits for the given cut such that each subcut can be pulled up
@@ -113,14 +113,14 @@ def compute_split(
     power -- Unit(s) used for the hillclimbing operation.
     cut -- Units that need to be brought up the hill.
     grade -- The gradient of the hill.
-    max_power -- Maximum power ratio to use.
+    power_ratio -- Maximum power ratio to use.
     collect_net -- After a subcut is brought up the hill, should units in it
     that are capable of making the grade under their own power be added to
     the power for future subcuts?
     """
-    p = power.net_force(grade=grade, power_ratio=max_power)
+    p = power.net_force(grade=grade, power_ratio=power_ratio)
     c = tuple(map(
-        operator.methodcaller('net_force', grade=grade, power_ratio=max_power),
+        operator.methodcaller('net_force', grade=grade, power_ratio=power_ratio),
         cut))
     if (max(c) <= 0) or (collect_net is not False):
         return fastsplit(p, c, collect_net=True)
