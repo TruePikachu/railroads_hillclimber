@@ -31,7 +31,7 @@ def TenderLocomotiveFactory(
                 name=name+' (Tender)',
                 mass=tender_mass,
             )
-        return CarGroup(
+        return stock.CarGroup(
                 name=name,
                 train=(locomotive, tender),
             )
