@@ -262,6 +262,12 @@ class Train(collections.abc.Sequence, Calculative):
     def __repr__(self):
         return f'Train({repr(self._elems)})'
 
+    def __reversed__(self):
+        for x in reversed(self._elems):
+            if isinstance(x, CarGroup):
+                yield x.reversed()
+            else:
+                yield x
 
 class CarGroup(RollingStock):
     """Class treating a Train of rolling stock as an indivisible entity for
@@ -303,3 +309,7 @@ class CarGroup(RollingStock):
     def tractive_effort(self):
         """Tractive effort of the rolling stock, in pounds of force."""
         return self._train.tractive_effort
+
+    def reversed(self):
+        """Return a CarGroup with the order of cars reversed."""
+        return CarGroup(self._name, reversed(self._train))
