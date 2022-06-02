@@ -9,6 +9,8 @@ def quicksplit(
         cut: Sequence[float]) -> Tuple[int]:
     """Run the Quicksplit algorithm.
 
+    Strictly O(n), optimal when cut is strictly nonpositive.
+
     capacity -- Amount of head force capacity available.
     cut -- Forces for each unit in the cut.
     """
@@ -35,6 +37,9 @@ def fastsplit(
         collect_net: bool = False) -> Tuple[int]:
     """Run the Fastsplit algorithm.
 
+    Worst case O(n²), optimal when cut is strictly nonpositive or when
+    collect_net is True.
+
     capacity -- Amount of head force capacity available.
     cut -- Forces for each unit in the cut.
     collect_net -- If True, when a subcut has a positive force, it is added
@@ -58,6 +63,8 @@ def smartsplit(
         capacity: float,
         cut: Sequence[float]) -> Tuple[int]:
     """Run the Smartsplit algorithm.
+
+    Worst case O(n²), optimal in all cases.
 
     capacity -- Amount of head force capacity available.
     cut -- Forces for each unit in the cut.
@@ -131,9 +138,11 @@ def compute_split(
         *,
         power_ratio: float = 1.0,
         collect_net: bool = False) -> Tuple[int]:
-    """
-    Compute splits for the given cut such that each subcut can be pulled up
+    """Compute splits for the given cut such that each subcut can be pulled up
     grade by power.
+
+    The result is guaranteed to use the fewest number of subcuts possible.
+    In the worst case, this will be an O(n²) operation on the train length.
 
     power -- Unit(s) used for the hillclimbing operation.
     cut -- Units that need to be brought up the hill.
