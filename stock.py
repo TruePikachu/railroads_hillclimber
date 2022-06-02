@@ -70,6 +70,12 @@ class Calculative(ABC):
         """
         return self.tractive_effort * power_ratio - self.starting_force(grade)
 
+    def can_climb(self, grade, power_ratio=1.0):
+        """Determine if the rolling stock can climb grade from a standstill
+        under its own power.
+        """
+        return self.net_force(grade, power_ratio) > 0
+
 class RollingStock(Calculative, ABC):
     """Abstract base class for everything that's treated as rolling stock."""
 
