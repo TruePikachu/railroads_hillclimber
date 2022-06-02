@@ -4,6 +4,31 @@ import operator
 from railroads_hillclimber.stock import Calculative, Train
 from typing import Iterable, Iterator, Sequence, Tuple
 
+def quicksplit(
+        capacity: float,
+        cut: Sequence[float]) -> Tuple[int]:
+    """Run the Quicksplit algorithm.
+
+    capacity -- Amount of head force capacity available.
+    cut -- Forces for each unit in the cut.
+    """
+    splits = []
+    assert capacity > 0
+    while len(cut) > 0:
+        remaining_capacity = capacity
+        for take_len, next_force in zip(
+                itertools.count(),
+                itertools.chain(cut, (0.0,))):
+            remaining_capacity += next_force
+            if remaining_capacity < 0:
+                break
+        if take_len==0:
+            return None
+        else:
+            splits.append(take_len)
+            cut = cut[take_len:]
+    return tuple(splits)
+
 def fastsplit(
         capacity: float,
         cut: Sequence[float],
@@ -122,7 +147,9 @@ def compute_split(
     c = tuple(map(
         operator.methodcaller('net_force', grade=grade, power_ratio=power_ratio),
         cut))
-    if (max(c) <= 0) or (collect_net is not False):
+    if max(c) <= 0.0:
+        return quicksplit(p, c)
+    elif collect_net is True:
         return fastsplit(p, c, collect_net=True)
     else:
         return smartsplit(p, c)
