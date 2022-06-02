@@ -176,18 +176,3 @@ def split_to_subcuts(
         split: Iterable[int]) -> Iterator[Train]:
     """Convert a splitting sequence into an iterator of subcut trains."""
     return map(Train, map(cut.__getitem__, split_to_slices(split)))
-
-def split_to_trips(
-        power: Calculative,
-        cut: Train,
-        split: Iterable[int],
-        collect_tractive: bool = False) -> Iterator[Train]:
-    """Convert a splitting sequence into an iterator of trip trains."""
-    sc = split_to_subcuts(cut, split)
-    if collect_tractive:
-        sc, sc2 = itertools.tee(sc)
-        tu = map(Train, map(operator.methodcaller('tractive_units'), sc2))
-        pw = itertools.accumulate(tu, initial=power)
-    else:
-        pw = itertools.repeat(power)
-    return map(operator.add, pw, sc)
