@@ -47,7 +47,9 @@ def compute_climb(
         for x in add_power)
     add_power = (functools.reduce(operator.add, x, stock.Train(()))
             for x in add_power)
-    trip_power = itertools.accumulate(add_power, initial=power)
+    trip_power = itertools.accumulate(itertools.chain(
+        (power,),
+        add_power))
     up_power, down_power = itertools.tee(trip_power)
     down_power = itertools.islice(down_power, 1, None)
     up = map(operator.add, up_power, subcuts)
